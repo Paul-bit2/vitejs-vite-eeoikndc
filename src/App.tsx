@@ -15,7 +15,6 @@ import {
   Gauge,
   ImagePlus,
   Layers3,
-  Menu,
   ShieldCheck,
   Sparkles,
   Upload,
@@ -210,7 +209,7 @@ function Styles() {
   );
 }
 
-function useEntrance(ref: React.RefObject<HTMLDivElement>, dep: unknown) {
+function useEntrance(ref: React.RefObject<HTMLDivElement | null>, dep: unknown) {
   useEffect(() => {
     if (!ref.current) return;
     gsap.fromTo(ref.current.querySelectorAll(".anim"), { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.45, stagger: 0.04, ease: "power2.out" });
@@ -276,5 +275,5 @@ export default function CrossdockSciFiDashboard() {
   const go=(n:number)=>{const safe=Math.max(0,Math.min(slides.length-1,n)); if(safe===idx)return; setDir(safe>idx?1:-1); setIdx(safe);};
   useEffect(()=>{const f=(e:KeyboardEvent)=>{if(e.key==="ArrowRight")go(idx+1); if(e.key==="ArrowLeft")go(idx-1)}; window.addEventListener("keydown",f); return()=>window.removeEventListener("keydown",f)},[idx]);
   const current = slides[idx]; const progress = Math.round((idx/(slides.length-1))*100);
-  return <><Styles/><div className="app"><aside className="sidebar"><div className="logoBox"><img src={GASO_LOGO}/></div><div className="sideTitle">.</div><div className="nav">{slides.map((s,i)=><button key={i} onClick={()=>go(i)} className={`navBtn ${i===idx?"active":""}`}><span className="num">{i+1}</span><span className="navLabel">{s.label}</span></button>)}</div></aside><main className="main"><header className="top"><div className="topMeta"><div className="report">Reporte de logros · Abril-Mayo 2026</div><div className="label">{current.label}</div></div><div className="progText">Diapositiva {idx+1} de {slides.length}</div><div className="bar"><div className="barFill" style={{width:`${progress}%`}}/></div><div className="pct">{progress}%</div></header><section className="stage"><AnimatePresence mode="wait" custom={dir}>{<motion.div key={idx} initial={{opacity:0,x:dir>0?40:-40}} animate={{opacity:1,x:0}} exit={{opacity:0,x:dir>0?-40:40}} transition={{duration:.28}} style={{position:"absolute",inset:0}}>{current.type==="cover"&&<Cover avg={avg}/>} {current.type==="summary"&&<Summary avg={avg}/>} {current.type==="achievement"&&<Achievement item={current.item} images={images} setImage={setImage}/>} {current.type==="closing"&&<Closing/>}</motion.div>}</AnimatePresence></section><footer className="bottom"><button className="circleBtn" onClick={()=>go(idx-1)} disabled={idx===0}><ArrowLeft size={17}/></button><div className="dots">{slides.map((_,i)=><button className={`dot ${i===idx?"active":""}`} key={i} onClick={()=>go(i)}/>)}</div><button className="circleBtn" onClick={()=>go(idx+1)} disabled={idx===slides.length-1}><ArrowRight size={17}/></button></footer></main></div></>;
+  return <><Styles/><div className="app"><aside className="sidebar"><div className="logoBox"><img src={GASO_LOGO}/></div><div className="sideTitle">.</div><div className="nav">{slides.map((s,i)=><button key={i} onClick={()=>go(i)} className={`navBtn ${i===idx?"active":""}`}><span className="num">{i+1}</span><span className="navLabel">{s.label}</span></button>)}</div></aside><main className="main"><header className="top"><div className="topMeta"><div className="report">Reporte de logros · Abril-Mayo 2026</div><div className="label">{current.label}</div></div><div className="progText">Diapositiva {idx+1} de {slides.length}</div><div className="bar"><div className="barFill" style={{width:`${progress}%`}}/></div><div className="pct">{progress}%</div></header><section className="stage"><AnimatePresence mode="wait" custom={dir}>{<motion.div key={idx} initial={{opacity:0,x:dir>0?40:-40}} animate={{opacity:1,x:0}} exit={{opacity:0,x:dir>0?-40:40}} transition={{duration:.28}} style={{position:"absolute",inset:0}}>{current.type==="cover"&&<Cover avg={avg}/>} {current.type==="summary"&&<Summary avg={avg}/>} {current.type==="achievement" && "item" in current && <Achievement item={current.item} images={images} setImage={setImage}/>} {current.type==="closing"&&<Closing/>}</motion.div>}</AnimatePresence></section><footer className="bottom"><button className="circleBtn" onClick={()=>go(idx-1)} disabled={idx===0}><ArrowLeft size={17}/></button><div className="dots">{slides.map((_,i)=><button className={`dot ${i===idx?"active":""}`} key={i} onClick={()=>go(i)}/>)}</div><button className="circleBtn" onClick={()=>go(idx+1)} disabled={idx===slides.length-1}><ArrowRight size={17}/></button></footer></main></div></>;
 }
