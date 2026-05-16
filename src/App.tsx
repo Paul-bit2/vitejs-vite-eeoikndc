@@ -244,10 +244,19 @@ function InfoCard({ title, items, icon: Icon, color }: { title: string; items: s
   return <div className="infoCard"><div className="infoTitle" style={{color}}><Icon size={14}/>{title}</div>{items.slice(0,4).map((x,i)=><div className="bullet" style={{color:i===0?color:"#e0e6f2"}} key={i}>{x}</div>)}</div>;
 }
 
-function PhotoSlot({ label, src }: { label: string; src: string }) {
+function PhotoSlot({ label, base }: { label: string; base: string }) {
+  const exts = [".jpeg", ".jpg", ".png", ".JPEG", ".JPG", ".PNG"];
+  const [extIndex, setExtIndex] = useState(0);
+
   return (
     <div className="photoSlot">
-      <img src={src} alt={label} />
+      <img
+        src={`${base}${exts[extIndex]}`}
+        alt={label}
+        onError={() => {
+          if (extIndex < exts.length - 1) setExtIndex(extIndex + 1);
+        }}
+      />
       <div className="tag">{label}</div>
     </div>
   );
@@ -259,7 +268,7 @@ function Achievement({ item }: { item: any }) {
     <aside className="achSide anim"><div className="iconBox"><Icon size={25}/></div><div className="sidePct"><div><strong>{item.value}%</strong><span>Completado</span></div></div><div className="kpiList">{item.kpis.map(([v,l]:string[])=><div className="kpi" key={l}><small>{l}</small><b>{v}</b></div>)}</div><div className="achLogo"><img src={GASO_LOGO}/></div></aside>
     <main className="achMain"><header className="achHead anim"><div><div className="eyebrow">Logro {item.id} de 10</div><div className="achTitle">{item.title}</div><div className="achSub">{item.subtitle}</div></div><div className="pctBox"><div><strong>{item.value}%</strong><span>Avance</span></div></div></header>
       <section className="achBody"><div className="infoGrid"><div className="leftInfo anim"><InfoCard title="Detalles de implementación" items={item.details} icon={Activity} color={C.light}/><InfoCard title="Siguientes pasos" items={item.next} icon={ArrowRight} color={C.gray}/></div><div className="rightInfo anim"><InfoCard title="Logros operativos" items={item.ops} icon={Zap} color={C.orange}/><InfoCard title="Logros administrativos" items={item.admin} icon={Database} color={C.light}/><InfoCard title="Riesgos" items={item.risks} icon={AlertTriangle} color={C.orange}/></div></div>
-      <div className="photosPanel anim"><div className="photoHeader"><span><Camera size={14}/> Evidencia fotográfica</span><span><Upload size={12}/> Local</span></div><div className="photoGrid"><PhotoSlot label="Antes" src={`/fotos/${(Number(item.id) - 1) * 2 + 1}.jpeg`} /><PhotoSlot label="Después" src={`/fotos/${(Number(item.id) - 1) * 2 + 2}.jpeg`} /></div></div></section></main>
+      <div className="photosPanel anim"><div className="photoHeader"><span><Camera size={14}/> Evidencia fotográfica</span><span><Upload size={12}/> Local</span></div><div className="photoGrid"><PhotoSlot label="Antes" base={`/fotos/${(Number(item.id) - 1) * 2 + 1}`} /><PhotoSlot label="Después" base={`/fotos/${(Number(item.id) - 1) * 2 + 2}`} /></div></div></section></main>
   </div></div>;
 }
 
