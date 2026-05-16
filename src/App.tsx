@@ -13,7 +13,6 @@ import {
   Cpu,
   Database,
   Gauge,
-  ImagePlus,
   Layers3,
   ShieldCheck,
   Sparkles,
@@ -245,19 +244,22 @@ function InfoCard({ title, items, icon: Icon, color }: { title: string; items: s
   return <div className="infoCard"><div className="infoTitle" style={{color}}><Icon size={14}/>{title}</div>{items.slice(0,4).map((x,i)=><div className="bullet" style={{color:i===0?color:"#e0e6f2"}} key={i}>{x}</div>)}</div>;
 }
 
-function PhotoSlot({ label, src, onPick }: { label: string; src?: string; onPick: (v:string)=>void }) {
-  const input = useRef<HTMLInputElement>(null);
-  const change = (file?: File) => { if(!file) return; const r = new FileReader(); r.onload = e => onPick(String(e.target?.result||"")); r.readAsDataURL(file); };
-  return <div className="photoSlot" onClick={()=>input.current?.click()}><input ref={input} type="file" accept="image/*" style={{display:"none"}} onChange={e=>change(e.target.files?.[0])}/>{src?<img src={src}/>:<div className="photoPlaceholder"><div><ImagePlus size={34}/><div style={{fontWeight:900,letterSpacing:".2em",fontSize:11,marginTop:8}}>SUBIR IMAGEN</div></div></div>}<div className="tag">{label}</div></div>;
+function PhotoSlot({ label, src }: { label: string; src: string }) {
+  return (
+    <div className="photoSlot">
+      <img src={src} alt={label} />
+      <div className="tag">{label}</div>
+    </div>
+  );
 }
 
-function Achievement({ item, images, setImage }: { item: any; images: Record<string,string>; setImage: (k:string,v:string)=>void }) {
+function Achievement({ item }: { item: any }) {
   const ref = useRef<HTMLDivElement>(null); useEntrance(ref, item.id); const Icon = item.icon;
   return <div ref={ref} className="slide"><div className="panel achievement">
     <aside className="achSide anim"><div className="iconBox"><Icon size={25}/></div><div className="sidePct"><div><strong>{item.value}%</strong><span>Completado</span></div></div><div className="kpiList">{item.kpis.map(([v,l]:string[])=><div className="kpi" key={l}><small>{l}</small><b>{v}</b></div>)}</div><div className="achLogo"><img src={GASO_LOGO}/></div></aside>
     <main className="achMain"><header className="achHead anim"><div><div className="eyebrow">Logro {item.id} de 10</div><div className="achTitle">{item.title}</div><div className="achSub">{item.subtitle}</div></div><div className="pctBox"><div><strong>{item.value}%</strong><span>Avance</span></div></div></header>
       <section className="achBody"><div className="infoGrid"><div className="leftInfo anim"><InfoCard title="Detalles de implementación" items={item.details} icon={Activity} color={C.light}/><InfoCard title="Siguientes pasos" items={item.next} icon={ArrowRight} color={C.gray}/></div><div className="rightInfo anim"><InfoCard title="Logros operativos" items={item.ops} icon={Zap} color={C.orange}/><InfoCard title="Logros administrativos" items={item.admin} icon={Database} color={C.light}/><InfoCard title="Riesgos" items={item.risks} icon={AlertTriangle} color={C.orange}/></div></div>
-      <div className="photosPanel anim"><div className="photoHeader"><span><Camera size={14}/> Evidencia fotográfica</span><span><Upload size={12}/> Local</span></div><div className="photoGrid"><PhotoSlot label="Antes" src={images[`ph_${item.id}_a`]} onPick={v=>setImage(`ph_${item.id}_a`,v)}/><PhotoSlot label="Después" src={images[`ph_${item.id}_d`]} onPick={v=>setImage(`ph_${item.id}_d`,v)}/></div></div></section></main>
+      <div className="photosPanel anim"><div className="photoHeader"><span><Camera size={14}/> Evidencia fotográfica</span><span><Upload size={12}/> Local</span></div><div className="photoGrid"><PhotoSlot label="Antes" src={`/fotos/${(Number(item.id) - 1) * 2 + 1}.jpeg`} /><PhotoSlot label="Después" src={`/fotos/${(Number(item.id) - 1) * 2 + 2}.jpeg`} /></div></div></section></main>
   </div></div>;
 }
 
@@ -268,12 +270,9 @@ function Closing() {
 export default function CrossdockSciFiDashboard() {
   const [idx, setIdx] = useState(0);
   const [dir, setDir] = useState(1);
-  const [images, setImages] = useState<Record<string,string>>({});
   const avg = useMemo(()=>Math.round(achievements.reduce((s,a)=>s+a.value,0)/achievements.length),[]);
-  useEffect(()=>{try{const s=localStorage.getItem("gaso_images_v2"); if(s) setImages(JSON.parse(s));}catch{}},[]);
-  const setImage = (k:string,v:string)=>setImages(p=>{const n={...p,[k]:v}; try{localStorage.setItem("gaso_images_v2",JSON.stringify(n));}catch{} return n;});
   const go=(n:number)=>{const safe=Math.max(0,Math.min(slides.length-1,n)); if(safe===idx)return; setDir(safe>idx?1:-1); setIdx(safe);};
   useEffect(()=>{const f=(e:KeyboardEvent)=>{if(e.key==="ArrowRight")go(idx+1); if(e.key==="ArrowLeft")go(idx-1)}; window.addEventListener("keydown",f); return()=>window.removeEventListener("keydown",f)},[idx]);
   const current = slides[idx]; const progress = Math.round((idx/(slides.length-1))*100);
-  return <><Styles/><div className="app"><aside className="sidebar"><div className="logoBox"><img src={GASO_LOGO}/></div><div className="sideTitle">.</div><div className="nav">{slides.map((s,i)=><button key={i} onClick={()=>go(i)} className={`navBtn ${i===idx?"active":""}`}><span className="num">{i+1}</span><span className="navLabel">{s.label}</span></button>)}</div></aside><main className="main"><header className="top"><div className="topMeta"><div className="report">Reporte de logros · Abril-Mayo 2026</div><div className="label">{current.label}</div></div><div className="progText">Diapositiva {idx+1} de {slides.length}</div><div className="bar"><div className="barFill" style={{width:`${progress}%`}}/></div><div className="pct">{progress}%</div></header><section className="stage"><AnimatePresence mode="wait" custom={dir}>{<motion.div key={idx} initial={{opacity:0,x:dir>0?40:-40}} animate={{opacity:1,x:0}} exit={{opacity:0,x:dir>0?-40:40}} transition={{duration:.28}} style={{position:"absolute",inset:0}}>{current.type==="cover"&&<Cover avg={avg}/>} {current.type==="summary"&&<Summary avg={avg}/>} {current.type==="achievement" && "item" in current && <Achievement item={current.item} images={images} setImage={setImage}/>} {current.type==="closing"&&<Closing/>}</motion.div>}</AnimatePresence></section><footer className="bottom"><button className="circleBtn" onClick={()=>go(idx-1)} disabled={idx===0}><ArrowLeft size={17}/></button><div className="dots">{slides.map((_,i)=><button className={`dot ${i===idx?"active":""}`} key={i} onClick={()=>go(i)}/>)}</div><button className="circleBtn" onClick={()=>go(idx+1)} disabled={idx===slides.length-1}><ArrowRight size={17}/></button></footer></main></div></>;
+  return <><Styles/><div className="app"><aside className="sidebar"><div className="logoBox"><img src={GASO_LOGO}/></div><div className="sideTitle">.</div><div className="nav">{slides.map((s,i)=><button key={i} onClick={()=>go(i)} className={`navBtn ${i===idx?"active":""}`}><span className="num">{i+1}</span><span className="navLabel">{s.label}</span></button>)}</div></aside><main className="main"><header className="top"><div className="topMeta"><div className="report">Reporte de logros · Abril-Mayo 2026</div><div className="label">{current.label}</div></div><div className="progText">Diapositiva {idx+1} de {slides.length}</div><div className="bar"><div className="barFill" style={{width:`${progress}%`}}/></div><div className="pct">{progress}%</div></header><section className="stage"><AnimatePresence mode="wait" custom={dir}>{<motion.div key={idx} initial={{opacity:0,x:dir>0?40:-40}} animate={{opacity:1,x:0}} exit={{opacity:0,x:dir>0?-40:40}} transition={{duration:.28}} style={{position:"absolute",inset:0}}>{current.type==="cover"&&<Cover avg={avg}/>} {current.type==="summary"&&<Summary avg={avg}/>} {current.type==="achievement" && "item" in current && <Achievement item={current.item}/>} {current.type==="closing"&&<Closing/>}</motion.div>}</AnimatePresence></section><footer className="bottom"><button className="circleBtn" onClick={()=>go(idx-1)} disabled={idx===0}><ArrowLeft size={17}/></button><div className="dots">{slides.map((_,i)=><button className={`dot ${i===idx?"active":""}`} key={i} onClick={()=>go(i)}/>)}</div><button className="circleBtn" onClick={()=>go(idx+1)} disabled={idx===slides.length-1}><ArrowRight size={17}/></button></footer></main></div></>;
 }
